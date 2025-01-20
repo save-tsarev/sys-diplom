@@ -1,0 +1,57 @@
+---
+- name: Test Connection to my servers
+  hosts: web_servers
+  become: yes
+
+  tasks:
+    - name: Update apt packages # Обновление пакетов
+      apt:
+        force_apt_get: true
+        upgrade: dist
+        update_cache: yes
+      become: true
+
+    - name: Install nginx on all servers # Установка nginx
+      apt: 
+        name: nginx
+        state: latest
+        update_cache: yes
+
+    - name: Copy stub_status.conf to nginx conf directory on all servers # Копирование stub_status.conf на все серверы
+      ansible.builtin.copy:
+        src: ./nginx_configs/stub_status.conf
+        dest: /etc/nginx/conf.d/stub_status.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Reload nginx to apply new configuration # Перезагрузка nginx для применения новых настроек
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+- name: Copy index.html to webserver 1 # Копирование index.html на первый сервер
+  hosts: web_server_1
+  become: yes
+
+  tasks:
+    - name: Copy index1.html
+      ansible.builtin.copy:
+        src: ./www/index1.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: sudo
+        mode: "0644"
+
+- name: Copy index.html to webserver 2 # Копирование index.html на второй сервер
+  hosts: web_server_2
+  become: yes
+
+  tasks:
+    - name: Copy index2.html
+      ansible.builtin.copy:
+        src: ./www/index2.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: sudo
+        mode: "0644"
